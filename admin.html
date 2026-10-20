@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ARIAN Admin Login</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f1f5f9;
+      margin: 0;
+      padding: 24px 14px;
+      color: #1e293b;
+    }
+    main {
+      max-width: 480px;
+      margin: 30px auto;
+      background: white;
+      padding: 24px;
+      border-radius: 14px;
+      box-shadow: 0 4px 18px #0001;
+    }
+    h1 { color: #123c69; }
+    label { display: block; margin-top: 16px; }
+    input, button {
+      width: 100%;
+      padding: 13px;
+      margin-top: 7px;
+      border-radius: 8px;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+    input { border: 1px solid #cbd5e1; }
+    button {
+      border: 0;
+      background: #087e8b;
+      color: white;
+      margin-top: 20px;
+      font-weight: bold;
+    }
+    #message { overflow-wrap: anywhere; }
+    #uploadArea { display: none; }
+    .secondary { background: #475569; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>📚 ARIAN Admin</h1>
+  <p>Admin အကောင့်ဖြင့် Login ဝင်ပါ။</p>
+
+  <section id="loginArea">
+    <label for="email">Email</label>
+    <input id="email" type="email" autocomplete="username"
+           placeholder="Admin Email" required>
+
+    <label for="password">Password</label>
+    <input id="password" type="password"
+           autocomplete="current-password"
+           placeholder="Password" required>
+
+    <button id="loginButton">Login ဝင်ရန်</button>
+  </section>
+
+  <section id="uploadArea">
+    <h2>PDF စာအုပ်တင်ရန်</h2>
+
+    <label for="title">စာအုပ်အမည်</label>
+    <input id="title" placeholder="စာအုပ်အမည်">
+
+    <label for="author">စာရေးသူ</label>
+    <input id="author" placeholder="စာရေးသူအမည်">
+
+    <label for="category">အမျိုးအစား</label>
+    <input id="category" placeholder="ဥပမာ - သမိုင်း">
+
+    <label for="description">အကြောင်းအရာ</label>
+    <input id="description" placeholder="စာအုပ်အကြောင်း">
+
+    <label for="pdf">PDF ဖိုင်ရွေးရန်</label>
+    <input id="pdf" type="file" accept="application/pdf">
+
+    <button id="uploadButton">PDF တင်ရန်</button>
+    <button id="logoutButton" class="secondary">Logout</button>
+  </section>
+
+  <p id="message" role="status"></p>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+"use strict";
+
+const SUPABASE_URL =
+  "https://hbkmkbtnavkbojwlvcoh.supabase.co";
+const SUPABASE_KEY =
+  "sb_publishable_W1tF7MI25NoZffoQqeI-ug_RmFiB_vu";
+
+const db = window.supabase.createClient(
+  SUPABASE_URL, SUPABASE_KEY
+);
+
+const message = document.getElementById("message");
+const loginArea = document.getElementById("loginArea");
+const uploadArea = document.getElementById("uploadArea");
+
+function showMessage(text) {
+  message.textContent = text;
+}
+
+async function checkAdmin() {
+  const { data: { user }, error } = await db.auth.getUser();
+
+  if (error || !user) {
+    loginArea.style.display = "block";
+    uploadArea.style.display = "none";
+    return;
+  }
+
+  const { data, error: adminError } = await db
+    .from("admin_users")
+    .select("user_id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (adminError || !data) {
+    loginArea.style.display = "block";
+    uploadArea.style.display = "none";
+    showMessage("ဤအကောင့်ကို Admin အဖြစ် ခွင့်မပြုထားပါ။");
+    await db.auth.signOut();
+    return;
+  }
+
+  loginArea.style.display = "none";
+  uploadArea.style.display = "block";
+  showMessage("Admin Login အောင်မြင်ပါသည်။");
+}
+
+document.getElementById("loginButton")
+  .addEventListener("click", async () => {
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
+
+    if (!email || !password) {
+      showMessage("Email နှင့် Password ဖြည့်ပါ။");
+      return;
+    }
+
+    showMessage("Login ဝင်နေပါသည်...");
+
+    const { error } = await db.auth.signInWithPassword({
+      email, password
+    });
+
+    if (error) {
+      showMessage("Login မအောင်မြင်ပါ: " + error.message);
+      return;
+    }
+
+    await checkAdmin();
+  });
+
+document.getElementById("uploadButton")
+  .addEventListener("click", async () => {
+    const { data: { user } } = await db.auth.getUser();
+
+    if (!user) {
+      showMessage("Login ပြန်ဝင်ပါ။");
+      return;
+    }
+
+    const title = document.getElementById("title").value.trim();
+    const author = document.getElementById("author").value.trim();
+    const category = document.getElementById("category").value.trim();
+    const description = document.getElementById("description").value.trim();
+    const file = document.getElementById("pdf").files[0];
+
+    if (!title || !file) {
+      showMessage("စာအုပ်အမည်နှင့် PDF ဖိုင် မဖြစ်မနေရွေးပါ။");
+      return;
+    }
+
+    if (file.type !== "application/pdf") {
+      showMessage("PDF ဖိုင်ကိုသာ ရွေးပါ။");
+      return;
+    }
+
+    const path = crypto.randomUUID() + ".pdf";
+
+    showMessage("PDF တင်နေပါသည်...");
+
+    const { error: uploadError } = await db.storage
+      .from("library-pdfs")
+      .upload(path, file, {
+        contentType: "application/pdf",
+        upsert: false
+      });
+
+    if (uploadError) {
+      showMessage("PDF Upload Error: " + uploadError.message);
+      return;
+    }
+
+    const { error: insertError } = await db
+      .from("books")
+      .insert({
+        title,
+        author: author || "မသိရသေး",
+        category: category || "အထွေထွေ",
+        description,
+        storage_path: path,
+        uploaded_by: user.id,
+        status: "approved"
+      });
+
+    if (insertError) {
+      showMessage(
+        "စာအုပ်စာရင်းထည့်မရပါ: " + insertError.message +
+        "။ PDF ဖိုင်တင်ပြီးသားဖြစ်နိုင်သဖြင့် ထပ်တင်မီ စစ်ဆေးပါ။"
+      );
+      return;
+    }
+
+    showMessage("စာအုပ်တင်ခြင်း အောင်မြင်ပါသည်။");
+    document.getElementById("title").value = "";
+    document.getElementById("author").value = "";
+    document.getElementById("category").value = "";
+    document.getElementById("description").value = "";
+    document.getElementById("pdf").value = "";
+  });
+
+document.getElementById("logoutButton")
+  .addEventListener("click", async () => {
+    await db.auth.signOut();
+    loginArea.style.display = "block";
+    uploadArea.style.display = "none";
+    showMessage("Logout လုပ်ပြီးပါပြီ။");
+  });
+
+checkAdmin();
+</script>
+</body>
+</html>
