@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+  <title>ARIAN PDF Library</title>
+
+  <meta name="description"
+        content="ARIAN PDF Library - စာအုပ်များကို ရှာဖွေဖတ်ရှုနိုင်သော စာကြည့်တိုက်">
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f3f6fb;
+      color: #1e293b;
+      line-height: 1.6;
+    }
+
+    header {
+      background: linear-gradient(135deg, #123c69, #087e8b);
+      color: white;
+      text-align: center;
+      padding: 32px 16px;
+    }
+
+    header h1 {
+      margin: 0 0 8px;
+      font-size: 30px;
+    }
+
+    header p {
+      margin: 0;
+      font-size: 15px;
+    }
+
+    main {
+      max-width: 1100px;
+      margin: 24px auto;
+      padding: 0 15px;
+    }
+
+    .search-panel {
+      background: white;
+      padding: 18px;
+      border-radius: 12px;
+      box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
+      margin-bottom: 22px;
+    }
+
+    .search-panel h2 {
+      margin-top: 0;
+      font-size: 20px;
+    }
+
+    .filters {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    input,
+    select {
+      width: 100%;
+      padding: 13px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 16px;
+      background: white;
+    }
+
+    input:focus,
+    select:focus {
+      outline: 2px solid #0d9488;
+      border-color: #0d9488;
+    }
+
+    .section-title {
+      font-size: 22px;
+      margin: 20px 0 14px;
+    }
+
+    #books {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    .book-card {
+      background: white;
+      border-radius: 12px;
+      padding: 18px;
+      box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
+      overflow-wrap: anywhere;
+    }
+
+    .book-card h3 {
+      color: #123c69;
+      margin: 0 0 12px;
+      font-size: 19px;
+    }
+
+    .book-card p {
+      margin: 7px 0;
+    }
+
+    .book-category {
+      display: inline-block;
+      background: #e0f2fe;
+      color: #075985;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 13px;
+      margin-top: 8px;
+    }
+
+    .btn {
+      display: inline-block;
+      background: #087e8b;
+      color: white;
+      text-decoration: none;
+      padding: 10px 15px;
+      border-radius: 8px;
+      margin-top: 14px;
+      font-weight: bold;
+    }
+
+    .btn:hover {
+      background: #065f66;
+    }
+
+    .message {
+      background: white;
+      padding: 18px;
+      border-radius: 10px;
+      text-align: center;
+      overflow-wrap: anywhere;
+    }
+
+    .error {
+      color: #991b1b;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      text-align: left;
+    }
+
+    footer {
+      text-align: center;
+      padding: 24px 12px;
+      margin-top: 35px;
+      background: #e2e8f0;
+      color: #475569;
+      font-size: 14px;
+    }
+
+    @media (min-width: 600px) {
+      .filters {
+        grid-template-columns: 2fr 1fr;
+      }
+
+      #books {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (min-width: 900px) {
+      #books {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <h1>📚 ARIAN PDF Library</h1>
+    <p>စာအုပ်များကို ရှာဖွေဖတ်ရှုနိုင်သော ဒစ်ဂျစ်တယ်စာကြည့်တိုက်</p>
+  </header>
+
+  <main>
+
+    <section class="search-panel">
+      <h2>🔎 စာအုပ်ရှာဖွေရန်</h2>
+
+      <div class="filters">
+        <input
+          type="search"
+          id="search"
+          placeholder="စာအုပ်အမည်၊ စာရေးသူအမည်ဖြင့် ရှာပါ..."
+          aria-label="စာအုပ်ရှာဖွေရန်">
+
+        <select id="category" aria-label="စာအုပ်အမျိုးအစား">
+          <option value="">အမျိုးအစားအားလုံး</option>
+        </select>
+      </div>
+    </section>
+
+    <h2 class="section-title">📖 စာအုပ်စာရင်း</h2>
+
+    <section id="books" aria-live="polite">
+      <div class="message">
+        စာအုပ်များကို ရယူနေပါသည်...
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>© <span id="year"></span> ARIAN PDF Library</p>
+    <p>အသိပညာမျှဝေခြင်းဖြင့် အနာဂတ်ကို တည်ဆောက်ကြပါစို့။</p>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <script>
+    "use strict";
+
+    // =====================================
+    // 1. SUPABASE CONNECTION
+    // =====================================
+
+    const SUPABASE_URL =
+      "https://hbkmkbtnavkbojwlvcoh.supabase.co";
+
+    const SUPABASE_KEY =
+      "sb_publishable_W1tF7MI25NoZffoQqeI-ug_RmFiB_vu";
+
+    const BUCKET_NAME = "library-pdfs";
+
+    const booksElement = document.getElementById("books");
+    const searchElement = document.getElementById("search");
+    const categoryElement = document.getElementById("category");
+
+    document.getElementById("year").textContent =
+      new Date().getFullYear();
+
+    let db = null;
+    let allBooks = [];
+
+    // =====================================
+    // 2. SHOW MESSAGE
+    // =====================================
+
+    function showMessage(message, isError = false) {
+      booksElement.replaceChildren();
+
+      const box = document.createElement("div");
+      box.className = isError
+        ? "message error"
+        : "message";
+
+      box.textContent = message;
+      booksElement.appendChild(box);
+    }
+
+    // =====================================
+    // 3. LOAD BOOKS FROM SUPABASE
+    // =====================================
+
+    async function loadBooks() {
+      showMessage("စာအုပ်များကို ရယူနေပါသည်...");
+
+      try {
+        if (!window.supabase) {
+          throw new Error(
+            "Supabase library ကို ဖွင့်မရပါ။ အင်တာနက်ချိတ်ဆက်မှုကို စစ်ဆေးပါ။"
+          );
+        }
+
+        db = window.supabase.createClient(
+          SUPABASE_URL,
+          SUPABASE_KEY
+        );
+
+        const result = await db
+          .from("books")
+          .select(
+            "id,title,author,description,category,storage_path,status,created_at"
+          )
+          .eq("status", "approved")
+          .order("created_at", { ascending: false });
+
+        if (result.error) {
+          console.error(
+            "Supabase database error:",
+            result.error
+          );
+
+          showMessage(
+            "Database Error: " +
+            result.error.message +
+            " | Code: " +
+            (result.error.code || "မသိရသေး"),
+            true
+          );
+
+          return;
+        }
+
+        allBooks = result.data || [];
+
+        updateCategories();
+        renderBooks();
+
+      } catch (error) {
+        console.error("ARIAN Library error:", error);
+
+        showMessage(
+          "ချိတ်ဆက်မှု အမှား: " +
+          (error.message || "အမှားတစ်ခု ဖြစ်ပေါ်နေပါသည်။"),
+          true
+        );
+      }
+    }
+
+    // =====================================
+    // 4. LOAD BOOK CATEGORIES
+    // =====================================
+
+    function updateCategories() {
+      const selectedCategory = categoryElement.value;
+
+      const categories = [
+        ...new Set(
+          allBooks
+            .map(book => book.category)
+            .filter(category =>
+              typeof category === "string" &&
+              category.trim() !== ""
+            )
+        )
+      ].sort((a, b) => a.localeCompare(b));
+
+      categoryElement.replaceChildren();
+
+      const allOption = document.createElement("option");
+      allOption.value = "";
+      allOption.textContent = "အမျိုးအစားအားလုံး";
+      categoryElement.appendChild(allOption);
+
+      categories.forEach(category => {
+        const option = document.createElement("option");
+        option.value = category;
+        option.textContent = category;
+        categoryElement.appendChild(option);
+      });
+
+      if (categories.includes(selectedCategory)) {
+        categoryElement.value = selectedCategory;
+      }
+    }
+
+    // =====================================
+    // 5. DISPLAY BOOKS
+    // =====================================
+
+    function renderBooks() {
+      const keyword = searchElement.value
+        .trim()
+        .toLocaleLowerCase();
+
+      const selectedCategory = categoryElement.value;
+
+      const filteredBooks = allBooks.filter(book => {
+        const title = String(book.title || "")
+          .toLocaleLowerCase();
+
+        const author = String(book.author || "")
+          .toLocaleLowerCase();
+
+        const description = String(book.description || "")
+          .toLocaleLowerCase();
+
+        const category = String(book.category || "");
+
+        const matchesKeyword =
+          !keyword ||
+          title.includes(keyword) ||
+          author.includes(keyword) ||
+          description.includes(keyword);
+
+        const matchesCategory =
+          !selectedCategory ||
+          category === selectedCategory;
+
+        return matchesKeyword && matchesCategory;
+      });
+
+      booksElement.replaceChildren();
+
+      if (filteredBooks.length === 0) {
+        showMessage(
+          allBooks.length === 0
+            ? "လောလောဆယ် ပြသရန် အတည်ပြုပြီးသော စာအုပ်မရှိသေးပါ။"
+            : "ရှာဖွေမှုနှင့် ကိုက်ညီသော စာအုပ်မတွေ့ပါ။"
+        );
+
+        return;
+      }
+
+      filteredBooks.forEach(book => {
+        const card = document.createElement("article");
+        card.className = "book-card";
+
+        const title = document.createElement("h3");
+        title.textContent = book.title || "အမည်မသိ စာအုပ်";
+        card.appendChild(title);
+
+        const author = document.createElement("p");
+        author.textContent =
+          "✍️ စာရေးသူ: " + (book.author || "မသိရသေး");
+        card.appendChild(author);
+
+        if (book.description) {
+          const description = document.createElement("p");
+          description.textContent =
+            "အကြောင်းအရာ: " + book.description;
+          card.appendChild(description);
+        }
+
+        if (book.category) {
+          const category = document.createElement("span");
+          category.className = "book-category";
+          category.textContent = book.category;
+          card.appendChild(category);
+        }
+
+        if (book.storage_path) {
+          const link = document.createElement("a");
+          link.className = "btn";
+          link.textContent = "📄 PDF စာအုပ်ဖွင့်ရန်";
+          link.target = "_blank";
+          link.rel = "noopener noreferrer";
+
+          const publicUrl = db.storage
+            .from(BUCKET_NAME)
+            .getPublicUrl(book.storage_path);
+
+          link.href = publicUrl.data.publicUrl;
+
+          card.appendChild(link);
+        } else {
+          const note = document.createElement("p");
+          note.textContent = "PDF ဖိုင်လမ်းကြောင်း မရှိသေးပါ။";
+          card.appendChild(note);
+        }
+
+        booksElement.appendChild(card);
+      });
+    }
+
+    // =====================================
+    // 6. SEARCH AND FILTER EVENTS
+    // =====================================
+
+    searchElement.addEventListener(
+      "input",
+      renderBooks
+    );
+
+    categoryElement.addEventListener(
+      "change",
+      renderBooks
+    );
+
+    // =====================================
+    // 7. START WEBSITE
+    // =====================================
+
+    loadBooks();
+
+  </script>
+
+</body>
+</html>
